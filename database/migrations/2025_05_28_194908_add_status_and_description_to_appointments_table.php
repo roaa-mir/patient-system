@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('doctors', function (Blueprint $table) {
-             // $table->renameColumn('specialitie_id', 'speciality_id');
+        Schema::table('appointments', function (Blueprint $table) {
+            $table->enum('status', ['scheduled', 'completed', 'cancelled'])->default('scheduled');
+            $table->text('description')->nullable();
         });
     }
 
@@ -21,7 +22,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('doctors', function (Blueprint $table) {
+        Schema::table('appointments', function (Blueprint $table) {
             //
         });
     }

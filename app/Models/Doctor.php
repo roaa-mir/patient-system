@@ -10,6 +10,7 @@ class Doctor extends Model
     protected $fillable = [
         'firstname',
         'lastname',
+        'email',
         'address',
         'phoneNumber',
         'gender',
@@ -30,7 +31,7 @@ class Doctor extends Model
         return $this->hasMany(Appointment::class,'patientID');
     }
     public function clinics(){
-        return $this->hasMany(Clinic::class,'clinicID');
+        return $this->belongsToMany(Clinic::class,'clinic_doctor', 'clinic_id', 'doctor_id');
     }
     
     

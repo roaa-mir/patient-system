@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignId('billing_id')->nullable()->constrained('billings')->onDelete('cascade');
             $table->date('date');
             $table->time('time');
+            
             $table->timestamps();
         });
     }

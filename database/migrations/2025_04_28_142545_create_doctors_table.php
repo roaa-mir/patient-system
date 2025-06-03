@@ -17,9 +17,10 @@ return new class extends Migration
             $table->foreignId('specialitie_id')->constrained('specialities')->onDelete('cascade');
             $table->string('firstname');
             $table->string('lastname');
-            $table->string('address');
-            $table->string('phoneNumber', 25);
-            $table->enum('gender', ['male', 'female', 'other']);
+            $table->string('email');
+            $table->string('address')->nullable();
+            $table->string('phoneNumber', 25)->nullable();
+            $table->enum('gender', ['male', 'female', 'other'])->nullable();
             $table->timestamps();
         });
     }

@@ -13,7 +13,9 @@ class Appointment extends Model
         'patient_id',
         'doctor_id',
         'clinic_id',
-        'billing_id'
+        'billing_id',
+        'status',
+        'description'
 
     ];
 

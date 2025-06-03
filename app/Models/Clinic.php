@@ -14,13 +14,11 @@ class Clinic extends Model
         'email',
         'facilities',
         'working_hours',
-        'is_active',
-        'doctor_id'
-
+        'is_active'
     ];
 
     public function doctors(){
-        return $this->hasMany(Doctor::class,'doctorID');
+        return $this->belongsToMany(Doctor::class,'clinic_doctor', 'clinic_id', 'doctor_id');
     }
     public function appointments(){
         return $this->hasMany(Appointment::class,'doctorID');

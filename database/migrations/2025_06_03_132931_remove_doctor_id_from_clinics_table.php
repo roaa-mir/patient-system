@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('doctors', function (Blueprint $table) {
-             // $table->renameColumn('specialitie_id', 'speciality_id');
+        Schema::table('clinics', function (Blueprint $table) {
+            $table->dropForeign(['doctor_id']);
+            $table->dropColumn('doctor_id');
         });
     }
 
@@ -21,8 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('doctors', function (Blueprint $table) {
-            //
+        Schema::table('clinics', function (Blueprint $table) {
+            $table->foreignId('doctor_id')->constrained()->onDelete('cascade');
         });
     }
 };
