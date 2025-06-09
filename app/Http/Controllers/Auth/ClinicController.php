@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 class ClinicController extends Controller
 {
+    //show all clinics //
     public function index()
     {
         return response()->json([
@@ -17,59 +18,41 @@ class ClinicController extends Controller
     }
 
 
+// add clinic for a doctor //
+  public function store(Request $request, $doctor_id)
+{
+    // Validate the input
+    $validated = $request->validate([
+        'name' => 'required|string',
+        'address' => 'required|string',
+        'contact_number' => 'required|string',
+    ]);
 
-//     public function store(Request $request)
-// {
-//     $validated = $request->validate([
-//         'name' => 'required|string',
-//         'address' => 'required|string',
-//         'contact_number' => 'nullable|string'
-//     ]);
+     // Check if the doctor exists
+    $doctor = Doctor::findOrFail($doctor_id);
 
-//     // Create clinic record
-//     $clinic = Clinic::create($validated);
-
-//     // Get the logged-in doctor's ID
-//     $doctorId = auth('doctor')->id(); // or auth('doctor')->id();
-
-//     // Link the clinic to the logged-in doctor via the pivot table
-//     $clinic->doctors()->attach($doctorId);
-
-//     return response()->json([
-//         'success' => true,
-//         'data' => $clinic
-//     ]);
-// }
-
-
-
-
-     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string',
-            'address' => 'required|string',
-            'contact_number' => 'nullable|string',
-            
-        ]);
-
-        $clinic = Clinic::create($validated);
-        // Get the logged-in user ID
-        $userId = auth('web')->id();
-
-    // Find the doctor profile using user_id
-        $doctor = Doctor::where('user_id', $userId)->first();
-
-    // Attach doctor to clinic via pivot table
-        if ($doctor) {
-            $clinic->doctors()->attach($doctor->id);
-        }
-        return response()->json([
-            'success' => true,
-            'data' => $clinic
-        ]);
+    // Try to find an existing clinic with same name + address
+    $clinic = Clinic::where('name', $validated['name'])
+                    ->where('address', $validated['address'])
+                    ->first();
+    // Create the clinic
+    if (!$clinic) {
+    $clinic = Clinic::create([
+        'name' => $validated['name'],
+        'address' => $validated['address'],
+        'contact_number' => $validated['contact_number']
+    ]);
     }
 
+    $clinic->doctors()->attach($doctor->id);
+    return response()->json([
+        'message' => 'Clinic created and linked to doctor successfully.',
+        'clinic' => $clinic
+    ]);
+}
+
+
+//show details for specific clinic //
     public function show(Clinic $clinic)
     {
         return response()->json([
@@ -78,10 +61,11 @@ class ClinicController extends Controller
         ]);
     }
 
+    //update a clinic //
     public function update(Request $request, Clinic $clinic)
     {
         $validated = $request->validate([
-            'name' => 'sometimes|string|max:255',
+        'name' => 'sometimes|string|max:255',
         'address' => 'sometimes|string|max:255',
         'contact_number' => 'nullable|string|max:20',
         'email' => 'sometimes|email|max:255',
@@ -98,8 +82,11 @@ class ClinicController extends Controller
             'data' => $clinic
         ]);
     }
+
+    //delete clinic //
     public function destroy(Clinic $clinic)
     {
+        $clinic->doctors()->detach();
         $clinic->delete();
 
         return response()->json([
@@ -108,6 +95,22 @@ class ClinicController extends Controller
             'message' => 'Clinic deleted successfully'
         ]);
     }
+
+   public function detachClinicFromDoctor($clinicId, $doctorId)
+{
+    // Find the clinic by ID or fail if not found
+    $clinic = Clinic::findOrFail($clinicId);
+
+    // Detach the doctor from the clinic in the pivot table only
+    $clinic->doctors()->detach($doctorId);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Clinic detached from doctor successfully.'
+    ]);
+}
+
+
     //Fetches all doctors belonging to the given clinic.
     public function doctors(Clinic $clinic)
     {

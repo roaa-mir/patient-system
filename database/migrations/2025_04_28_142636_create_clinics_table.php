@@ -20,7 +20,7 @@ return new class extends Migration
             $table->text('facilities')->nullable();
             $table->json('working_hours')->nullable();
             $table->boolean('is_active')->default(true);
-            //$table->foreignId('doctor_id')->nullable()->constrained('doctors')->onDelete('cascade');
+            $table->foreignId('doctor_id')->nullable()->constrained('doctors')->onDelete('cascade');
             $table->timestamps();
         });
     }

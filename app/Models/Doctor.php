@@ -1,11 +1,14 @@
 <?php
 
+
 namespace App\Models;
 
+//use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
 
 class Doctor extends Model
 {
+     //use HasApiTokens, Notifiable;
     //
     protected $fillable = [
         'firstname',
@@ -28,7 +31,7 @@ class Doctor extends Model
     }
 
     public function appointments(){
-        return $this->hasMany(Appointment::class,'patientID');
+        return $this->hasMany(Appointment::class,'patient_id');
     }
     public function clinics(){
         return $this->belongsToMany(Clinic::class,'clinic_doctor', 'clinic_id', 'doctor_id');
