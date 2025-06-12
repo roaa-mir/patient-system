@@ -4,11 +4,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 //use App\Http\Controllers\Auth;
 use App\Models\Doctor;
+use Illuminate\Support\Facades\DB;
 
 use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\Auth\DoctorController;
 use App\Http\Controllers\Auth\PatientController;
 use App\Http\Controllers\Auth\ClinicController;
+use App\Http\Controllers\MedicationController;
+use App\Http\Controllers\Auth\BillingController;
 use App\Http\Controllers\Auth\AppointmentController;
 use App\Http\Controllers\Auth\SpecialitieController;
 
@@ -21,11 +24,12 @@ Route::post('/login', [AuthController::class, 'login']);
 // Protected route for logout
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 
-// Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
+
 // USERS
 Route::apiResource('users', UserController::class);
 
-//patient routes
+//PATIENTS
 Route::get('/patients', [PatientController::class, 'index']);
 Route::get('/patients/{patient}', [PatientController::class, 'show']);
 Route::put('/patients/{patient}', [PatientController::class, 'update']);
@@ -37,11 +41,28 @@ Route::get('/patients/{patient}/appointmentsdetails', [PatientController::class,
 // DOCTORS
     Route::apiResource('doctors', DoctorController::class);
     Route::get('doctors/{doctor}/appointments', [DoctorController::class, 'appointments']);
-    Route::get('doctors/search', [DoctorController::class, 'searchDoctors']);
-    Route::get('doctors/speciality/{id}', [DoctorController::class, 'doctorsBySpecialitie']);
+    ///Route::get('doctors/search', [DoctorController::class, 'searchDoctors']);
+    //Route::get('doctors/speciality/{id}', [DoctorController::class, 'doctorsBySpecialitie']);// make it without auth
+    Route::get('/doctors/{doctorId}/clinics', [DoctorController::class, 'getClinics']);
+    Route::get('/doctors/{doctor}/details', [DoctorController::class, 'showdetails']);
+    Route::put('/doctors/{doctor}', [DoctorController::class, 'update']);
+    
 
 //specialties
     Route::apiResource('specialities', SpecialitieController::class);
+
+
+    //MEDICATIONS
+Route::get('/medications', [MedicationController::class, 'index']);
+Route::post('/medications', [MedicationController::class, 'store']);
+Route::get('/medications/{medication}', [MedicationController::class, 'show']);
+Route::put('/medications/{medication}', [MedicationController::class, 'update']);
+Route::patch('/medications/{medication}', [MedicationController::class, 'update']);
+Route::delete('/medications/{medication}', [MedicationController::class, 'destroy']);
+
+//BILLINGS 
+
+
 
 // CLINICS
     Route::apiResource('clinics', ClinicController::class);
@@ -65,24 +86,17 @@ Route::get('/appointments/patients/{patient}', [AppointmentController::class, 's
 // //show all appointments for a specific doctor
 Route::get('/appointments/doctors/{doctor}', [AppointmentController::class, 'showAllForDoctor']);
 
+Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy']);
+Route::patch('/appointments/{appointment}', [AppointmentController::class, 'update']);
+Route::get('/appointments/{appointment}/medication', [AppointmentController::class, 'medication']);
 Route::get('/appointments/{appointment}/billing', [AppointmentController::class, 'billing']);
 
 // Cancel appointment (accessible by doctor or patient)
-Route::patch('/appointments/{appointment}/cancel', [AppointmentController::class, 'cancel']);
+//Route::patch('/appointments/{appointment}/cancel', [AppointmentController::class, 'cancel']);
 
 
-// // Show specific appointment details for doctor //for patient
-// Route::get('/appointments/{appointment}', [AppointmentController::class, 'showforDr']);
-// Route::get('/appointments/{appointment}', [AppointmentController::class, 'showforP']);
 
-// // Update specific appointment
-// Route::put('/appointments/{appointment}', [AppointmentController::class, 'update']);
-// // Delete specific appointment
-// Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy']);
-// // Get medications for an appointment
-// Route::get('/appointments/{appointment}/medications', [AppointmentController::class, 'medications']);
-// // Get billing info for an appointment
-// Route::get('/appointments/{appointment}/billing', [AppointmentController::class, 'billing']);
+});
 
-// }
-// );
+Route::get('doctors/speciality/{id}', [DoctorController::class, 'doctorsBySpecialitie']);
+//Route::get('doctors/search', [DoctorController::class, 'searchDoctors']);

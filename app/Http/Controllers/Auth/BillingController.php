@@ -8,20 +8,20 @@ use App\Models\Billing;
 
 class BillingController extends Controller
 {
-    public function index()
-    {
-        return response()->json([
-            'success' => true,
-            'data' => Billing::with('appointment')->get()
-        ]);
-    }
-    public function show(Billing $billing)
-    {
-        return response()->json([
-            'success' => true,
-            'data' => $billing->load('appointment')
-        ]);
-    }
+    // public function index()
+    // {
+    //     return response()->json([
+    //         'success' => true,
+    //         'data' => Billing::with('appointment')->get()
+    //     ]);
+    // }
+    // public function show(Billing $billing)
+    // {
+    //     return response()->json([
+    //         'success' => true,
+    //         'data' => $billing->load('appointment')
+    //     ]);
+    // }
     public function destroy(Billing $billing)
     {
         $billing->delete();

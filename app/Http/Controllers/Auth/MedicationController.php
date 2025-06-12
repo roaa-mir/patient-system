@@ -4,11 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Medication;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 
 class MedicationController extends Controller
 {
+    use AuthorizesRequests;
     public function index()
     {
+        $this->authorize('viewAny', Medication::class);
         return response()->json([
             'success' => true,
             'data' => Medication::with(['patient', 'appointment'])->get()
@@ -17,6 +21,7 @@ class MedicationController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorize('create', Medication::class);
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
             'appointment_id' => 'required|exists:appointments,id',
@@ -36,6 +41,7 @@ class MedicationController extends Controller
 
     public function show(Medication $medication)
     {
+        $this->authorize('view', $medication);
         return response()->json([
             'success' => true,
             'data' => $medication->load(['patient', 'appointment'])
@@ -44,6 +50,7 @@ class MedicationController extends Controller
 
     public function update(Request $request, Medication $medication)
     {
+        $this->authorize('update', $medication);
         $validated = $request->validate([
             'name' => 'sometimes|string',
             'doses' => 'sometimes|string',
@@ -61,6 +68,7 @@ class MedicationController extends Controller
 
     public function destroy(Medication $medication)
     {
+        $this->authorize('delete', $medication);
         $medication->delete();
 
         return response()->json([

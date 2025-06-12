@@ -5,10 +5,13 @@ use App\Models\Appointment;
 use \App\Models\Patient;
 use App\Models\Doctor;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class AppointmentController extends Controller
 {
+      use AuthorizesRequests;
    //Display a listing  //
     public function index()
     {
@@ -43,7 +46,32 @@ public function storeForPatient(Request $request, Patient $patient)
         'status' => 'required|in:scheduled,completed,cancelled',
         'description' => 'nullable|string',
     ]);
+    // Check if the selected clinic belongs to the selected doctor
+    $isDoctorInClinic = DB::table('clinic_doctor')
+        ->where('doctor_id', $validated['doctor_id'])
+        ->where('clinic_id', $validated['clinic_id'])
+        ->exists();
+    if (!$isDoctorInClinic) {
+        return response()->json([
+            'success' => false,
+            'message' => 'This doctor is not assigned to the selected clinic.'
+        ], 403);
+    }
 
+    // Check if the patient already has an appointment with this doctor on the same date
+    $alreadyExists = $patient->appointments()
+        ->where('doctor_id', $validated['doctor_id'])
+        ->where('date', $validated['date'])
+        ->exists();
+
+    if ($alreadyExists) {
+        return response()->json([
+            'success' => false,
+            'message' => 'You already have an appointment with this doctor on this date.'
+        ], 409);
+    }
+
+    //create the appointment
     $appointment = $patient->appointments()->create($validated);
 
     return response()->json([
@@ -99,7 +127,57 @@ public function storeForPatient(Request $request, Patient $patient)
            'data' => $appointments,
         ]);
     }
-    //Returns the billing information related to a specific appointment.
+    
+
+
+    //delete // Only allow doctor/patient who owns the appointment to delete//
+    public function destroy(Appointment $appointment)
+    {
+        $this->authorize('delete', $appointment);
+        $appointment->delete();
+
+        return response()->json([
+            'success' => true,
+            'data' => null,
+            'message' => 'Appointment deleted successfully'
+        ]);
+        
+    }
+
+
+    //update for specific id
+    public function update(Request $request, Appointment $appointment)
+    {
+        $this->authorize('update', $appointment);
+
+        $validated = $request->validate([
+            'date' => 'sometimes|date',
+            'time' => 'sometimes',
+            'status' => 'sometimes|in:scheduled,completed,cancelled',
+            'description' => 'nullable|string',
+        ]);
+
+        $appointment->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'data' => $appointment->load(['patient', 'doctor', 'clinic']),
+        ]);
+    }
+
+
+
+    //Returns all medications related to a specific appointment.//
+    public function medication(Appointment $appointment){
+
+        $medication = $appointment->medications()->get();
+
+        return response()->json([
+           'success' => true,
+           'data' => $medication
+        ]);
+    }
+    //Returns the billing information related to a specific appointment.//
     public function billing(Appointment $appointment){
 
          $billing = $appointment->billing;
@@ -109,106 +187,43 @@ public function storeForPatient(Request $request, Patient $patient)
            'data' => $billing
          ]);
     }
-
-    public function cancel(Appointment $appointment, Request $request)
-{
-    $user = $request->user();
-    $appointment->load(['patient', 'doctor']);
-
-    $isPatient = optional($appointment->patient)->user_id === $user->id;
-    $isDoctor = optional($appointment->doctor)->user_id === $user->id;
-
-    if (!($isPatient || $isDoctor)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Unauthorized to cancel this appointment.'
-        ], 403);
-    }
-
-    $appointment->status = 'canceled';
-    $appointment->save();
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Appointment canceled successfully.',
-        'data' => $appointment,
-    ]);
-}
-
-
-
-    // //delete //
-    // public function destroy(Appointment $appointment)
-    // {
-    //     $appointment->delete();
-
-    //     return response()->json([
-    //         'success' => true,
-    //         'data' => null,
-    //         'message' => 'Appointment deleted successfully'
-    //     ]);
-        
-    // }
-    //store create
-    public function store(Request $request){
-        $validated = $request->validate([
-            'patient_id' => 'required|exists:patients,id',
-            'doctor_id' => 'required|exists:doctors,id',
-            'clinic_id' => 'required|exists:clinics,id',
-            'date' => 'required|date',
-            'time' => 'required',
-            'status' => 'required|in:scheduled,completed,cancelled',
-            'description' => 'nullable|string',
-            'billing_id' => ''
-        ]);
-
-        $appointment = Appointment::create($validated);
-
-        return response()->json([
-            'success' => true,
-            'data' => $appointment
-        ]);
-
-    }
-
-    //update for specific id
-    public function update(Request $request, Appointment $appointment)
-    {
-        $validated = $request->validate([
-            'patient_id' => 'sometimes|exists:patients,id',
-            'doctor_id' => 'sometimes|exists:doctors,id',
-            'clinic_id' => 'sometimes|exists:clinics,id',
-            'date' => 'sometimes|date',
-            'time' => 'sometimes',
-            'status' => 'sometimes|in:scheduled,completed,cancelled',
-            'description' => 'nullable|string',
-            'billing_id' => ''
-        ]);
-
-        $appointment->update($validated);
-
-        return response()->json([
-            'success' => true,
-            'data' => $appointment
-        ]);
-    }
-
-
-
-    //Returns all medications related to a specific appointment.
-    public function medications(Appointment $appointment){
-
-        $medications = $appointment->medications()->get();
-
-        return response()->json([
-           'success' => true,
-           'data' => $medications
-        ]);
-    }
     
 
-    
 
-    
+
+
+
+
+
+
+
+
+
+
+
+    //     public function cancel(Appointment $appointment, Request $request)
+// {
+//     $user = $request->user();
+//     $appointment->load(['patient', 'doctor']);
+
+//     $isPatient = optional($appointment->patient)->user_id === $user->id;
+//     $isDoctor = optional($appointment->doctor)->user_id === $user->id;
+
+//     if (!($isPatient || $isDoctor)) {
+//         return response()->json([
+//             'success' => false,
+//             'message' => 'Unauthorized to cancel this appointment.'
+//         ], 403);
+//     }
+
+//     $appointment->status = 'canceled';
+//     $appointment->save();
+
+//     return response()->json([
+//         'success' => true,
+//         'message' => 'Appointment canceled successfully.',
+//         'data' => $appointment,
+//     ]);
+// }
 
 }

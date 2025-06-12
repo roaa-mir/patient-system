@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
-
+use Illuminate\Support\Facades\Auth;
 use App\Models\Doctor;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class DoctorController extends Controller
 {
-    // List all doctors//
+    use AuthorizesRequests;
+    // List all doctors///
     public function index()
     {
         $doctors = Doctor::with('user', 'specialitie','clinics')->get();
@@ -17,9 +19,26 @@ class DoctorController extends Controller
             'data' => $doctors
         ]);
     }
+   
+//get all clinics for specific dr ///
+public function getClinics($doctorId) {
+    $doctor = Doctor::with('clinics')->find($doctorId);
 
-    // Show a specific doctor //
-    public function show(Doctor $doctor)
+    if (!$doctor) {
+        return response()->json(['success' => false, 'message' => 'Doctor not found'], 404);
+    }
+
+    return response()->json([
+        'success' => true,
+        'doctor_id' => $doctor->id,
+        'clinics' => $doctor->clinics
+    ]);
+}
+
+
+
+    // Show details for a specific doctor ///
+    public function showdetails(Doctor $doctor)
     {
         $doctor->load(['user', 'specialitie', 'clinics']);
 
@@ -29,35 +48,12 @@ class DoctorController extends Controller
         ]);
     }
 
-    // Store a new doctor profile//
-    public function store(Request $request)
-    {
-        $validatedData = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'firstname' => 'required|string|max:255',
-            'lastname' => 'required|string|max:255',
-            'phoneNumber' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:255',
-            'gender' => 'nullable|in:male,female',
-            'speciality_id' => 'required|exists:specialities,id',
-            'clinic_ids' => 'sometimes|array',
-            'clinic_ids.*' => 'exists:clinics,id',
-        ]);
 
-        $doctor = Doctor::create($validatedData);
-
-        return response()->json($doctor, 201);
-    }
-
-    // Update an existing doctor profile //
+    // Update doctor profile //
     public function update(Request $request, Doctor $doctor)
     {
+        $this->authorize('update', $doctor);
         $validated = $request->validate([
-            'speciality_id' => 'sometimes|exists:specialities,id',
-            //'clinic_id' => 'sometimes|exists:clinics,id',
-            'firstname' => 'sometimes|string|max:255',
-            'lastname' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email',
             'phoneNumber' => 'sometimes|string|max:20',
             'address' => 'sometimes|string|max:255',
             'gender' => 'sometimes|in:male,female',
@@ -71,32 +67,21 @@ class DoctorController extends Controller
         ]);
     }
 
-    // Delete a doctor profile //
-    public function destroy(Doctor $doctor)
-    {
-        $doctor->delete();
-
-        return response()->json([
-            'success' => true,
-            'data' => null,
-            'message' => 'Doctor deleted successfully'
-        ]);
-    }
-
-    //returns all appointments related to a specific doctor.//
+    // AppoforApecDR returns all appointments related to a specific doctor.///
     public function appointments(Doctor $doctor)
     {
+        $this->authorize('view', $doctor);
         return response()->json([
             'success' => true,
             'data' => $doctor->appointments()->with(['patient', 'clinic'])->get()
         ]);
     }
 
-    // Doctors by Speciality
+    // Doctors by Speciality ///
     public function doctorsBySpecialitie($specialitie_id)
     {
         $doctors = Doctor::where('specialitie_id', $specialitie_id)
-            ->with('clinic')
+            ->with('clinics')
             ->get();
 
         return response()->json([
@@ -104,19 +89,26 @@ class DoctorController extends Controller
             'data' => $doctors
         ]);
     }
-    // Search Doctors by Name
-    public function searchDoctors(Request $request)
-    {
-        $request->validate(['query' => 'required|string']);
 
-        $doctors = Doctor::where('firstname', 'like', '%' . $request->query . '%')
-            ->orWhere('lastname', 'like', '%' . $request->query . '%')
-            ->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $doctors
-        ]);
-    }
+
+    
+//     // Search Doctors by Name
+//     public function searchDoctors(Request $request)
+// {
+//     $request->validate(['query' => 'required|string']);
+
+//     $query = $request->query('query'); // from ?query=a
+
+//     $doctors = Doctor::where('firstname', 'like', "%$query%")
+//         ->orWhere('lastname', 'like', "%$query%")
+//         ->get(['id', 'firstname', 'lastname']); // return only needed fields
+
+//     return response()->json([
+//         'success' => true,
+//         'data' => $doctors
+//     ]);
+// }
+
 }
 

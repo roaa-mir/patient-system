@@ -34,8 +34,9 @@ class Doctor extends Model
         return $this->hasMany(Appointment::class,'patient_id');
     }
     public function clinics(){
-        return $this->belongsToMany(Clinic::class,'clinic_doctor', 'clinic_id', 'doctor_id');
-    }
+    return $this->belongsToMany(Clinic::class, 'clinic_doctor', 'doctor_id', 'clinic_id');
+}
+
     
     
 }
