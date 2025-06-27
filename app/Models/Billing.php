@@ -11,12 +11,13 @@ class Billing extends Model
         'date',
         'time',
         'amount',
-        'status'
+        'status',
+        'appointment_id'
 
     ];
 
     public function appointment()
     {
-        return $this->hasOne(Appointment::class);
+        return $this->hasOne(Appointment::class, 'Billing_id');
     }
 }

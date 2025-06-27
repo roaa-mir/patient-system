@@ -10,7 +10,7 @@ use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\Auth\DoctorController;
 use App\Http\Controllers\Auth\PatientController;
 use App\Http\Controllers\Auth\ClinicController;
-use App\Http\Controllers\MedicationController;
+use App\Http\Controllers\Auth\MedicationController;
 use App\Http\Controllers\Auth\BillingController;
 use App\Http\Controllers\Auth\AppointmentController;
 use App\Http\Controllers\Auth\SpecialitieController;
@@ -57,12 +57,11 @@ Route::get('/medications', [MedicationController::class, 'index']);
 Route::post('/medications', [MedicationController::class, 'store']);
 Route::get('/medications/{medication}', [MedicationController::class, 'show']);
 Route::put('/medications/{medication}', [MedicationController::class, 'update']);
-Route::patch('/medications/{medication}', [MedicationController::class, 'update']);
 Route::delete('/medications/{medication}', [MedicationController::class, 'destroy']);
 
 //BILLINGS 
 
-
+Route::apiResource('billings', BillingController::class);
 
 // CLINICS
     Route::apiResource('clinics', ClinicController::class);

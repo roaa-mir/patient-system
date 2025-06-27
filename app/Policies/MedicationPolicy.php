@@ -13,7 +13,7 @@ class MedicationPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+         return $user->role === 'doctor' || $user->role === 'patient';
     }
 
     /**
@@ -21,10 +21,15 @@ class MedicationPolicy
      */
     public function view(User $user, Medication $medication): bool
     {
-        // Patient and DR can view medications
-        return $user->role === 'doctor' || 
-               ($user->role === 'patient' && $medication->patient->user_id === $user->id);
+        if ($user->role === 'doctor') {
+        return $medication->appointment->doctor->user_id === $user->id;
     }
+
+    if ($user->role === 'patient') {
+        return $medication->patient->user_id === $user->id;
+    }
+
+    return false; }
 
     /**
      * Determine whether the user can create models.
@@ -40,7 +45,7 @@ class MedicationPolicy
     public function update(User $user, Medication $medication): bool
     {
        
-    return $user->id === $medication->patient->user_id;
+         return $user->role === 'doctor' && $medication->appointment->doctor->user_id === $user->id;
     }
 
     /**

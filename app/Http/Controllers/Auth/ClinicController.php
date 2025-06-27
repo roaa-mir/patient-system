@@ -44,7 +44,8 @@ class ClinicController extends Controller
     ]);
     }
 
-    $clinic->doctors()->attach($doctor->id);
+    $clinic->doctors()->syncWithoutDetaching([$doctor_id]);
+    //$clinic->doctors()->attach($doctor->id);
     return response()->json([
         'message' => 'Clinic created and linked to doctor successfully.',
         'clinic' => $clinic
