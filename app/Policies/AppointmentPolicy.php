@@ -37,8 +37,10 @@ class AppointmentPolicy
      */
     public function update(User $user, Appointment $appointment): bool
     {
-        return $user->id === $appointment->doctor->user->id;
-    }
+        return 
+        optional($appointment->patient)->user_id === $user->id ||
+        optional($appointment->doctor)->user_id === $user->id;
+}
 
     /**
      * Determine whether the user can delete the model.

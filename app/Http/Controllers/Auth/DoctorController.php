@@ -38,7 +38,7 @@ public function getClinics($doctorId) {
 
 
     // Show details for a specific doctor ///
-    public function showdetails(Doctor $doctor)
+    public function show(Doctor $doctor)
     {
         $doctor->load(['user', 'specialitie', 'clinics']);
 

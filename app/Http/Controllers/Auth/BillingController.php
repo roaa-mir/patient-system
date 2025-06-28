@@ -11,39 +11,19 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 class BillingController extends Controller
 {
     use AuthorizesRequests;
-    // public function index()
-    // {
-    //     $user = auth()->user();
-
-    //     // Load billings with appointment + patient + doctor relations
-    //     if ($user->role === 'doctor') {
-    //         $billings = Billing::with('appointment.patient.user', 'appointment.doctor.user')->get();
-    //     } elseif ($user->role === 'patient') {
-    //         $billings = Billing::whereHas('appointment', function ($query) use ($user) {
-    //             $query->where('patient_id', $user->patient->id);
-    //         })->with('appointment.patient.user', 'appointment.doctor.user')->get();
-    //     } else {
-    //         $billings = collect(); // empty collection for unauthorized roles
-    //     }
-
-    //     return response()->json([
-    //         'success' => true,
-    //         'data' => $billings
-    //     ]);
-    // }
-
-    public function show(Billing $billing)
+    
+    // Show billing of a specific appointment
+    public function show(Appointment $appointment)
     {
-        $this->authorize('view', $billing);
+        $billing = $appointment->billing;
 
-        $billing->load('appointment.patient.user', 'appointment.doctor.user');
+        $this->authorize('view', $billing);
 
         return response()->json([
             'success' => true,
             'data' => $billing
         ]);
     }
-
 // Create billing for a specific appointment
     public function store(Request $request, Appointment $appointment)
 {
