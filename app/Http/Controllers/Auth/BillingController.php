@@ -6,24 +6,41 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Billing;
 use App\Models\Appointment;
+use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class BillingController extends Controller
 {
     use AuthorizesRequests;
+    //list all billings for an appointment:
+    public function index(Appointment $appointment)
+{
     
-    // Show billing of a specific appointment
-    public function show(Appointment $appointment)
-    {
-        $billing = $appointment->billing;
+    $this->authorize('viewAny', Billing::class);
 
-        $this->authorize('view', $billing);
+    
+    $billings = $appointment->billings()->with('appointment.patient.user', 'appointment.doctor.user')->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $billing
-        ]);
-    }
+    return response()->json([
+        'success' => true,
+        'data' => $billings
+    ]);
+}
+
+    // show a single billing
+    public function show(Billing $billing)
+{
+    // Load relations needed for policy check
+    $billing->load('appointment.doctor.user', 'appointment.patient.user');
+
+    $this->authorize('view', $billing);
+
+    return response()->json([
+        'success' => true,
+        'data' => $billing
+    ]);
+}
+
 // Create billing for a specific appointment
     public function store(Request $request, Appointment $appointment)
 {
@@ -37,7 +54,15 @@ class BillingController extends Controller
     }
 
     $validated = $request->validate([
-        'title' => 'nullable|string|max:255',
+        'titlee' => [
+        'required',
+        'string',
+        'max:255',
+        // Enforce unique per appointment:
+        Rule::unique('billings')->where(fn ($q) => 
+            $q->where('appointment_id', $appointment->id)
+        ),
+    ],
         'date' => 'required|date',
         'time' => 'nullable',
         'amount' => 'required|numeric',
@@ -59,7 +84,7 @@ class BillingController extends Controller
         $this->authorize('update', $billing);
 
         $validated = $request->validate([
-            'title' => 'nullable|string|max:255',
+            'titlee' => 'nullable|string|max:255',
             'date' => 'sometimes|date',
             'time' => 'nullable',
             'amount' => 'sometimes|numeric',
@@ -73,21 +98,6 @@ class BillingController extends Controller
             'data' => $billing
         ]);
     }
-
-    // // Delete billing of a specific appointment
-    // public function destroy(Appointment $appointment)
-    // {
-    //     $billing = $appointment->billing;
-
-    //     $this->authorize('delete', $billing);
-
-    //     $billing->delete();
-
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => 'Billing deleted successfully'
-    //     ]);
-    // }
 
     public function destroy(Billing $billing)
 {

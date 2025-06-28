@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Medication;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 
@@ -25,7 +26,15 @@ class MedicationController extends Controller
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
             'appointment_id' => 'required|exists:appointments,id',
-            'name' => 'required|string',
+            'name' => [
+                   'required',
+                   'string',
+                   'max:255',
+                   // Unique per appointment:
+                   Rule::unique('medications')->where(fn ($q) =>
+                       $q->where('appointment_id', $request->appointment_id)
+                    ),
+            ],
             'doses' => 'required|string',
             'startDate' => 'required|date',
             'endDate' => 'nullable|date|after_or_equal:startDate',

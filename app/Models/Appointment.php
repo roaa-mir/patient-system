@@ -40,5 +40,5 @@ class Appointment extends Model
     {
     return $this->hasMany(Medication::class);
     }
-
+    
 }
