@@ -8,6 +8,7 @@ class Billing extends Model
 {
     //
     protected $fillable = [
+        'title',
         'date',
         'time',
         'amount',

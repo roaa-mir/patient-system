@@ -61,12 +61,12 @@ Route::delete('/medications/{medication}', [MedicationController::class, 'destro
 
 //BILLINGS 
 
-Route::prefix('appointments/{appointment}')->group(function () {
-        Route::get('billing', [BillingController::class, 'show']);
-        Route::post('billing', [BillingController::class, 'store']);
-        Route::put('billing', [BillingController::class, 'update']);
-        Route::delete('billing', [BillingController::class, 'destroy']);
-    });
+
+Route::post('appointments/{appointment}/billings', [BillingController::class, 'store']);
+Route::get('appointments/{appointment}/billings', [BillingController::class, 'index']);
+Route::get('billings/{billing}', [BillingController::class, 'show']);
+Route::put('billings/{billing}', [BillingController::class, 'update']);
+Route::delete('billings/{billing}', [BillingController::class, 'destroy']);
     
 // CLINICS
     Route::apiResource('clinics', ClinicController::class);

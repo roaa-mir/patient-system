@@ -37,13 +37,14 @@ class BillingController extends Controller
     }
 
     $validated = $request->validate([
+        'title' => 'nullable|string|max:255',
         'date' => 'required|date',
         'time' => 'nullable',
         'amount' => 'required|numeric',
         'status' => 'required|in:paid,unpaid,pending',
     ]);
 
-    $billing = $appointment->billing()->create($validated);
+    $billing = $appointment->billings()->create($validated);
 
     return response()->json([
         'success' => true,
@@ -58,6 +59,7 @@ class BillingController extends Controller
         $this->authorize('update', $billing);
 
         $validated = $request->validate([
+            'title' => 'nullable|string|max:255',
             'date' => 'sometimes|date',
             'time' => 'nullable',
             'amount' => 'sometimes|numeric',
@@ -72,18 +74,31 @@ class BillingController extends Controller
         ]);
     }
 
-    // Delete billing of a specific appointment
-    public function destroy(Appointment $appointment)
-    {
-        $billing = $appointment->billing;
+    // // Delete billing of a specific appointment
+    // public function destroy(Appointment $appointment)
+    // {
+    //     $billing = $appointment->billing;
 
-        $this->authorize('delete', $billing);
+    //     $this->authorize('delete', $billing);
 
-        $billing->delete();
+    //     $billing->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Billing deleted successfully'
-        ]);
-    }
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Billing deleted successfully'
+    //     ]);
+    // }
+
+    public function destroy(Billing $billing)
+{
+    $this->authorize('delete', $billing);
+
+    $billing->delete();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Billing deleted successfully'
+    ]);
+}
+
 }
