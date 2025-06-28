@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Billing;
+use App\Models\Appointment;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class BillingController extends Controller
@@ -43,32 +44,37 @@ class BillingController extends Controller
         ]);
     }
 
-    public function store(Request $request)
-    {
-        $this->authorize('create', Billing::class);
+// Create billing for a specific appointment
+    public function store(Request $request, Appointment $appointment)
+{
+    $this->authorize('create',Billing::class);
 
-        // Since billing is linked from appointment, 
-        // you might need appointment_id to create a billing and link it later,
-        // but with your setup, appointment has billing_id, so you can't set that here directly.
-
-        // For now, just validate billing fields:
-        $validated = $request->validate([
-            'date' => 'required|date',
-            'time' => 'nullable',
-            'amount' => 'required|numeric',
-            'status' => 'required|in:paid,unpaid,pending',
-        ]);
-
-        $billing = Billing::create($validated);
-
+    if ($appointment->billing) {
         return response()->json([
-            'success' => true,
-            'data' => $billing
-        ]);
+            'success' => false,
+            'message' => 'Billing already exists for this appointment.'
+        ], 400);
     }
 
-    public function update(Request $request, Billing $billing)
+    $validated = $request->validate([
+        'date' => 'required|date',
+        'time' => 'nullable',
+        'amount' => 'required|numeric',
+        'status' => 'required|in:paid,unpaid,pending',
+    ]);
+
+    $billing = $appointment->billing()->create($validated);
+
+    return response()->json([
+        'success' => true,
+        'data' => $billing
+    ]);   
+}
+// Update billing of a specific appointment
+    public function update(Request $request, Appointment $appointment)
     {
+        $billing = $appointment->billing;
+
         $this->authorize('update', $billing);
 
         $validated = $request->validate([
@@ -86,15 +92,17 @@ class BillingController extends Controller
         ]);
     }
 
-    public function destroy(Billing $billing)
+    // Delete billing of a specific appointment
+    public function destroy(Appointment $appointment)
     {
+        $billing = $appointment->billing;
+
         $this->authorize('delete', $billing);
 
         $billing->delete();
 
         return response()->json([
             'success' => true,
-            'data' => null,
             'message' => 'Billing deleted successfully'
         ]);
     }

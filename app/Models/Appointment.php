@@ -33,9 +33,10 @@ class Appointment extends Model
         return $this->belongsTo(Clinic::class); 
     }
     public function billing()
-    {
-        return $this->belongsTo(Billing::class, 'Billing_id');  
-    }
+{
+    return $this->hasOne(Billing::class);
+}
+
     public function medications()
     {
     return $this->hasMany(Medication::class);

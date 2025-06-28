@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Billing;
 use App\Models\User;
+use App\Models\Appointment;
 use Illuminate\Auth\Access\Response;
 
 class BillingPolicy
@@ -41,6 +42,14 @@ class BillingPolicy
     {
          return $user->role === 'doctor';
     }
+
+//     public function createForAppointment(User $user, Appointment $appointment): bool
+// {
+//     return $user->role === 'doctor'
+//         && $appointment->doctor
+//         && $appointment->doctor->user_id === $user->id;
+// }
+
 
     /**
      * Determine whether the user can update the model.

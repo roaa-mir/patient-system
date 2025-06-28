@@ -17,7 +17,7 @@ class Billing extends Model
     ];
 
     public function appointment()
-    {
-        return $this->hasOne(Appointment::class, 'Billing_id');
-    }
+{
+    return $this->belongsTo(Appointment::class);
+}
 }
